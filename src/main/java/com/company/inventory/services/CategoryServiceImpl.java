@@ -9,7 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CategoryServiceImpl implements ICategoryService{
@@ -24,6 +26,30 @@ public class CategoryServiceImpl implements ICategoryService{
             response.getCategoryResponse().setCategory(category);
             response.setMetadata("Respuesta OK", "00", "Respuesta exitosa");
 
+        }catch (Exception exception){
+            response.setMetadata("Respuesta Error", "-1", "Error en consulta");
+            exception.getStackTrace();
+            return new ResponseEntity<CategoryResponseRest>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity<CategoryResponseRest>(response, HttpStatus.OK);
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<CategoryResponseRest> searchById(Long id) {
+        CategoryResponseRest response = new CategoryResponseRest();
+        List<Category> list = new ArrayList<>();
+        try{
+            Optional<Category> category = categoryDao.findById(id);
+            if (category.isPresent()){
+                list.add(category.get());
+                response.setMetadata("Respuesta OK", "00", "Categoria encontrada");
+                response.getCategoryResponse().setCategory(list);
+            }else{
+                response.setMetadata("Respuesta Error", "-1", "Error en consulta por Id");
+                return new ResponseEntity<CategoryResponseRest>(response, HttpStatus.NOT_FOUND);
+
+            }
         }catch (Exception exception){
             response.setMetadata("Respuesta Error", "-1", "Error en consulta");
             exception.getStackTrace();
